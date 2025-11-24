@@ -25,6 +25,11 @@ public class AuthService {
     private final JwtService jwtService;
 
     public AuthResponse register(RegisterRequestDTO request) {
+        //verificar si el usuario ya existe
+        if (usuarioRepository.findByEmail(request.getEmail()).isPresent()) {
+            throw new RuntimeException("El email ya esta registrado");
+        }
+
         User user;
         user = User.builder()
                 .email(request.getEmail())
@@ -49,6 +54,20 @@ public class AuthService {
         return AuthResponse.builder()
                 .token(token)
                 .build();
+    }
+
+    public AuthResponse refreshToken(String refreshToken) {
+        String email = jwtService.getEmailFromToken(refreshToken);
+        UserDetails user = usuarioRepository.findByEmail(email).orElseThrow();
+
+        if (jwtService.isTokenValid(refreshToken, user)) {
+            String newToken = jwtService.getToken(user);
+            return AuthResponse.builder()
+                    .token(newToken)
+                    .build();
+        } else {
+            throw new RuntimeException("Refresh token no valido");
+        }
     }
 
 }
