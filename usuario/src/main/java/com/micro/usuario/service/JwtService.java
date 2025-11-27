@@ -29,7 +29,12 @@ public class JwtService {
     private long REFRESH_EXPIRATION;
 
     public String getToken(UserDetails user) {
-        return getToken(new HashMap<>(), user);
+        //Agregar el rol al token
+        Map<String, Object> extraClaims = new HashMap<>();
+        extraClaims.put("role", user.getAuthorities().stream().findFirst().get().getAuthority());
+        return getToken(extraClaims, user);
+
+        
     }
 
     public String getToken(Map<String, Object> extraClaims, UserDetails user) {
